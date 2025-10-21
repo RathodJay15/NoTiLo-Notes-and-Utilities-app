@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563427434233",
+    "project_id": "notilo-data",
+    "storage_bucket": "notilo-data.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563427434233:android:bb4a39144873f199a9cc28",
+        "android_client_info": {
+          "package_name": "com.example.notilo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0sdjwF7KUjYCyRtQLIjcmJsxBJWVCBq4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

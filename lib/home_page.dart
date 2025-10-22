@@ -317,6 +317,48 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
   }
 
+  Future<void> _deleteAccount() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final userRef = FirebaseFirestore.instance.collection("users").doc(user.uid);
+
+      // Step 1: Delete all notes
+      final notesSnapshot = await userRef.collection("notes").get();
+      for (var doc in notesSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Step 2: Delete all utilities
+      final utilitiesSnapshot = await userRef.collection("utilities").get();
+      for (var doc in utilitiesSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Step 3: Delete main user document
+      await userRef.delete();
+
+      // Step 4: Delete Firebase Auth account
+      await user.delete();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account deleted successfully.")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error deleting account: $e")),
+      );
+    }
+  }
+
+
   Future<void> _openUrlAndCopy(String url, String usernameOrEmail) async {
     await Clipboard.setData(ClipboardData(text: usernameOrEmail));
     final uri = Uri.parse(url);
@@ -385,26 +427,71 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           username,
           style: GoogleFonts.poppins(
             color: Colors.black,
-            fontWeight: FontWeight.w500,
-            fontSize: 18,
+            fontWeight: FontWeight.w700, // bold
+            fontSize: 20, // larger text
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: _logout,
-            style: TextButton.styleFrom(
-              backgroundColor: const Color(0xFF5C5C5C),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.black),
+            onSelected: (value) async {
+              if (value == 'logout') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text("Confirm Logout"),
+                    content: const Text("Are you sure you want to log out?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text("Logout"),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm ?? false) {
+                  await _logout();
+                }
+              } else if (value == 'delete') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text("Delete Account"),
+                    content: const Text(
+                      "This will permanently delete your account and all your data. Are you sure?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text("Delete"),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm ?? false) {
+                  await _deleteAccount();
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Text("Delete Account"),
               ),
-            ),
-            child: Text(
-              'Logout',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
+              const PopupMenuItem(
+                value: 'logout',
+                child: Text("Logout"),
               ),
-            ),
+            ],
           ),
           const SizedBox(width: 10),
         ],
@@ -420,6 +507,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ],
         ),
       ),
+
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -466,7 +554,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
+
                             blurRadius: 5,
                             offset: const Offset(0, 2),
                           ),
@@ -585,7 +674,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 3,
                             offset: const Offset(0, 2),
                           ),

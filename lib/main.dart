@@ -25,6 +25,28 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
         scaffoldBackgroundColor: Colors.white,
+
+        //  this block for consistent dark grey borders on TextFields
+        inputDecorationTheme: InputDecorationTheme(
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF5C5C5C), width: 1.5),
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF5C5C5C), width: 1.0),
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF5C5C5C)),
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+        ),
+
+        //  Ensures focus color (cursor, highlight) also uses grey instead of blue
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xFF5C5C5C),
+          primary: Color(0xFF5C5C5C),
+        ),
       ),
       home: const AuthWrapper(),
     );

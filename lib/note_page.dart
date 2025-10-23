@@ -1,120 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:google_fonts/google_fonts.dart';
-//
-// class NotePage extends StatefulWidget {
-//   final DocumentSnapshot? note;
-//
-//   const NotePage({Key? key, this.note}) : super(key: key);
-//
-//   @override
-//   State<NotePage> createState() => _NotePageState();
-// }
-//
-// class _NotePageState extends State<NotePage> {
-//   final _titleController = TextEditingController();
-//   final _descriptionController = TextEditingController();
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     if (widget.note != null) {
-//       _titleController.text = widget.note!['title'];
-//       _descriptionController.text = widget.note!['description'];
-//     }
-//   }
-//
-//   Future<void> _saveNote() async {
-//     final userId = FirebaseAuth.instance.currentUser!.uid;
-//     final collection = FirebaseFirestore.instance
-//         .collection("users")
-//         .doc(userId)
-//         .collection("notes");
-//
-//     final data = {
-//       'title': _titleController.text,
-//       'description': _descriptionController.text,
-//       'updatedAt': FieldValue.serverTimestamp(),
-//     };
-//
-//     if (widget.note != null) {
-//       await widget.note!.reference.update(data);
-//     } else {
-//       await collection.add(data);
-//     }
-//
-//     Navigator.pop(context);
-//   }
-//
-//   Future<void> _deleteNote() async {
-//     if (widget.note != null) {
-//       final confirm = await showDialog<bool>(
-//         context: context,
-//         builder: (_) => AlertDialog(
-//           title: const Text("Confirm Delete"),
-//           content: const Text("Do you want to delete this note?"),
-//           actions: [
-//             TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
-//             TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
-//           ],
-//         ),
-//       );
-//
-//       if (confirm ?? false) {
-//         await widget.note!.reference.delete();
-//         Navigator.pop(context);
-//       }
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final isEditing = widget.note != null;
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: Colors.white,
-//         elevation: 1,
-//         title: Text(
-//           isEditing ? widget.note!['title'] : "New Note",
-//           style: GoogleFonts.poppins(color: Colors.black),
-//         ),
-//         actions: [
-//           if (isEditing)
-//             IconButton(
-//               onPressed: _deleteNote,
-//               icon: const Icon(Icons.delete, color: Colors.red),
-//             ),
-//           IconButton(
-//             onPressed: _saveNote,
-//             icon: const Icon(Icons.save, color: Colors.green),
-//           ),
-//         ],
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(12.0),
-//         child: Column(
-//           children: [
-//             TextField(
-//               controller: _titleController,
-//               decoration: const InputDecoration(hintText: "Title"),
-//             ),
-//             const SizedBox(height: 12),
-//             Expanded(
-//               child: TextField(
-//                 controller: _descriptionController,
-//                 decoration: const InputDecoration(hintText: "Description"),
-//                 maxLines: null,
-//                 expands: true,
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -214,7 +97,7 @@ class _NotePageState extends State<NotePage> {
     return true;
   }
 
-  /// 🧱 Custom AlertDialog matching your Notilo theme
+  ///  Custom AlertDialog matching your Notilo theme
   Widget _buildStyledDialog({
     required String title,
     required String content,
@@ -330,3 +213,5 @@ class _NotePageState extends State<NotePage> {
     super.dispose();
   }
 }
+
+

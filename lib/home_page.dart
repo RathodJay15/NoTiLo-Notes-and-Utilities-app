@@ -314,19 +314,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF5C5C5C),
         elevation: 1,
         title: Text(
           username,
           style: GoogleFonts.poppins(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.w700, // bold
             fontSize: 20, // larger text
           ),
         ),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: (value) async {
               if (value == 'logout') {
                 final confirm = await showDialog<bool>(
@@ -390,8 +390,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF5C5C5C),
-          labelColor: Colors.black,
+          indicatorColor: const Color(0xFFFFFFFF),
+          labelColor: Colors.white,
           unselectedLabelColor: Colors.grey,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
           tabs: const [
@@ -443,7 +443,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -508,13 +508,39 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            "${updatedAt.day}/${updatedAt.month}/${updatedAt.year} ${updatedAt.hour}:${updatedAt.minute.toString().padLeft(2, '0')}",
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[700],
-                              fontSize: 12,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end, // Align to right side
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: Colors.grey[700],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${updatedAt.day}/${updatedAt.month}/${updatedAt.year}",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.grey[700],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${updatedAt.hour}:${updatedAt.minute.toString().padLeft(2, '0')}",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
+
                         ],
                       ),
                     ),
@@ -563,7 +589,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -639,3 +665,4 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 }
+

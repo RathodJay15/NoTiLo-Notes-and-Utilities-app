@@ -25,10 +25,16 @@ class _UtilityPageState extends State<UtilityPage> {
   @override
   void initState() {
     super.initState();
+    // If opening an existing utility → load values + KEEP password hidden
     if (widget.utility != null) {
       _urlController.text = widget.utility!['url'];
       _usernameController.text = widget.utility!['usernameOrEmail'];
       _passwordController.text = widget.utility!['password'];
+
+      _obscurePassword = true;   // Existing → hidden
+    } else {
+      // Creating new utility → SHOW password field (not hidden)
+      _obscurePassword = false;  // NEW → visible
     }
 
     _urlController.addListener(_onEdited);
@@ -296,6 +302,48 @@ class _UtilityPageState extends State<UtilityPage> {
       }
     }
   }
+  Widget _buildPasswordField() {
+    // CASE 1 — NEW UTILITY → Normal TextField
+    if (widget.utility == null) {
+      return TextField(
+        controller: _passwordController,
+        obscureText: _obscurePassword,
+        style: GoogleFonts.poppins(color: Colors.black),
+        decoration: InputDecoration(
+          labelText: "Password",
+          labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
+          border: InputBorder.none,
+        ),
+        onChanged: (_) => _onEdited(),
+      );
+    }
+
+    // CASE 2 — EXISTING UTILITY → Locked until verified
+    return GestureDetector(
+      onTap:  () => _verifyAndTogglePassword(),
+      child: AbsorbPointer(
+        absorbing: !_isVerified,
+        child: TextField(
+          controller: _passwordController,
+          obscureText: _obscurePassword,
+          style: GoogleFonts.poppins(color: Colors.black),
+          decoration: InputDecoration(
+            labelText: "Password",
+            labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
+            border: InputBorder.none,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                color: Colors.grey,
+              ),
+              onPressed: _verifyAndTogglePassword,
+            ),
+          ),
+          onChanged: (_) => _onEdited(),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -337,33 +385,27 @@ class _UtilityPageState extends State<UtilityPage> {
               TextField(
                 controller: _urlController,
                 style: GoogleFonts.poppins(color: Colors.black),
-                decoration: const InputDecoration(hintText: "URL"),
+                decoration: InputDecoration(
+                  labelText: "URL",
+                  labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
+                  border: InputBorder.none,
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _usernameController,
                 style: GoogleFonts.poppins(color: Colors.black),
-                decoration: const InputDecoration(hintText: "Username / Email"),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                readOnly: true,
-                style: GoogleFonts.poppins(color: Colors.black),
                 decoration: InputDecoration(
-                  hintText: "Password",
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: Colors.grey[700],
-                    ),
-                    onPressed: _verifyAndTogglePassword,
-                  ),
+                  labelText: "Username / Email",
+                  labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
+                  border: InputBorder.none,
                 ),
               ),
+              const SizedBox(height: 12),
+
+              //create password field
+              _buildPasswordField(),
+
             ],
           ),
         ),

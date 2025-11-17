@@ -367,8 +367,9 @@ class _NotePageState extends State<NotePage> {
               TextField(
                 controller: _titleController,
                 style: GoogleFonts.poppins(color: Colors.black),
-                decoration: const InputDecoration(
-                  hintText: "Title",
+                decoration: InputDecoration(
+                  labelText: "Title",
+                  labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
                   border: InputBorder.none,
                 ),
               ),
@@ -377,8 +378,9 @@ class _NotePageState extends State<NotePage> {
                 child: TextField(
                   controller: _descriptionController,
                   style: GoogleFonts.poppins(color: Colors.black),
-                  decoration: const InputDecoration(
-                    hintText: "Description",
+                  decoration: InputDecoration(
+                    labelText: "Description",
+                    labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
                     border: InputBorder.none,
                   ),
                   maxLines: null,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'registration_page.dart';
-import 'home_page.dart';
+import 'services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,8 +14,9 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = true;
+  final AuthService _authService = AuthService();
 
-  // Error messages
   String? _emailError;
   String? _passwordError;
 
@@ -40,21 +41,28 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCred = await _authService.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      print('Login successful: ${userCred.user?.uid}');
+      
+      // Ensure remember_me is written before any navigation
+      await _authService.setRememberMe(_rememberMe);
+      print('Remember me preference saved');
+      
+      // authStateChanges() in main.dart will handle navigation automatically
     } on FirebaseAuthException catch (e) {
+      print('Login error: ${e.code} - ${e.message}');
       setState(() {
-        _passwordError = "Login failed: ${e.code}";
+        _passwordError = e.message ?? "Login failed: ${e.code}";
+      });
+    } catch (e, st) {
+      print('Unexpected login error: $e\n$st');
+      setState(() {
+        _passwordError = "Login failed: $e";
       });
     }
-
   }
 
   Future<void> _forgotPassword() async {
@@ -66,14 +74,16 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: _emailController.text.trim());
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Password reset email sent!")),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
@@ -95,10 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ],
             ),
-            constraints: const BoxConstraints(
-              minWidth: 100,
-              maxWidth: 400,
-            ),
+            constraints: const BoxConstraints(minWidth: 100, maxWidth: 400),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -132,7 +139,8 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Align(
-                      alignment: Alignment.centerLeft, // aligns text to the left
+                      alignment:
+                          Alignment.centerLeft, // aligns text to the left
                       child: Text(
                         _emailError!,
                         style: const TextStyle(color: Colors.red, fontSize: 12),
@@ -149,9 +157,11 @@ class _LoginPageState extends State<LoginPage> {
                     labelText: 'Password',
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
                       onPressed: () {
                         setState(() {
                           _obscurePassword = !_obscurePassword;
@@ -164,14 +174,31 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Align(
-                      alignment: Alignment.centerLeft, // aligns text to the left
+                      alignment:
+                          Alignment.centerLeft, // aligns text to the left
                       child: Text(
                         _passwordError!,
                         style: const TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                   ),
-                const SizedBox(height: 26),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (val) {
+                        setState(() => _rememberMe = val ?? false);
+                      },
+                      activeColor: const Color(0xFF5C5C5C),
+                    ),
+                    const Text(
+                      'Remember me',
+                      style: TextStyle(color: Color(0xFF1C1C1C)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   height: 49,
@@ -211,7 +238,8 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const RegistrationPage()),
+                        builder: (_) => const RegistrationPage(),
+                      ),
                     );
                   },
                   child: const Text(
@@ -222,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Color(0xFF87879D),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

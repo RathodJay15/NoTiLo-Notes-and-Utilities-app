@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
-import 'home_page.dart';
+import 'services/auth_service.dart';
+import 'main.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -21,36 +22,50 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Future<void> _register() async {
     if (_passwordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
       return;
     }
 
     try {
-      final userCredential =
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+      //print('Registration success uid=${userCredential.user?.uid}');
 
       // Store username in Firestore
       await FirebaseFirestore.instance
           .collection("users")
           .doc(userCredential.user!.uid)
           .set({
-        "username": _usernameController.text.trim(),
-        "email": _emailController.text.trim(),
-      });
+            "username": _usernameController.text.trim(),
+            "email": _emailController.text.trim(),
+          });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    } catch (e) {
+      await FirebaseAuth.instance.signOut();
+      RestartWidget.restartApp(context);
+      //print('User data saved to Firestore');
+
+      // Set remember_me to true for newly registered users
+      // final authService = AuthService();
+      // await authService.setRememberMe(true);
+      // print('Remember me set for new user');
+
+      // User is signed in, authStateChanges in AuthWrapper will handle navigation automatically
+      // Don't navigate manually - the stream listener will update the UI
+    } on FirebaseAuthException catch (e) {
+      print('Registration error: ${e.code} - ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Registration failed: $e")),
+        SnackBar(content: Text(e.message ?? "Registration failed: ${e.code}")),
       );
+    } catch (e, st) {
+      print('Unexpected registration error: $e\n$st');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Registration failed: $e")));
     }
   }
 
@@ -60,7 +75,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.all( 30),
+            padding: EdgeInsets.all(30),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -72,10 +87,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ],
             ),
-            constraints: const BoxConstraints(
-              minWidth: 100,
-              maxWidth: 400,
-            ),
+            constraints: const BoxConstraints(minWidth: 100, maxWidth: 400),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,9 +134,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     labelText: 'Password',
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
                       onPressed: () {
                         setState(() {
                           _obscurePassword = !_obscurePassword;
@@ -142,9 +156,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     labelText: 'Re-enter Password',
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscureConfirm
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(
+                        _obscureConfirm
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
                       onPressed: () {
                         setState(() {
                           _obscureConfirm = !_obscureConfirm;
@@ -191,7 +207,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       color: Color(0xFF87879D),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

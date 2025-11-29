@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'encryption_helper.dart';
 
-class UtilityPage extends StatefulWidget {
+class LoginUtilityPage extends StatefulWidget {
   final DocumentSnapshot? utility;
 
-  const UtilityPage({Key? key, this.utility}) : super(key: key);
+  const LoginUtilityPage({super.key, this.utility});
 
   @override
-  State<UtilityPage> createState() => _UtilityPageState();
+  State<LoginUtilityPage> createState() => _LoginUtilityPageState();
 }
 
-class _UtilityPageState extends State<UtilityPage> {
+class _LoginUtilityPageState extends State<LoginUtilityPage> {
+  final _titleController = TextEditingController();
   final _urlController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -27,9 +29,11 @@ class _UtilityPageState extends State<UtilityPage> {
     super.initState();
     // If opening an existing utility → load values + KEEP password hidden
     if (widget.utility != null) {
+      _titleController.text = widget.utility!['title'] ?? '';
       _urlController.text = widget.utility!['url'];
-      _usernameController.text = widget.utility!['usernameOrEmail'];
-      _passwordController.text = widget.utility!['password'];
+      // Decrypt username and password when loading
+      _usernameController.text = EncryptionHelper.decrypt(widget.utility!['usernameOrEmail']);
+      _passwordController.text = EncryptionHelper.decrypt(widget.utility!['password']);
 
       _obscurePassword = true;   // Existing → hidden
     } else {
@@ -37,6 +41,7 @@ class _UtilityPageState extends State<UtilityPage> {
       _obscurePassword = false;  // NEW → visible
     }
 
+    _titleController.addListener(_onEdited);
     _urlController.addListener(_onEdited);
     _usernameController.addListener(_onEdited);
     _passwordController.addListener(_onEdited);
@@ -51,12 +56,14 @@ class _UtilityPageState extends State<UtilityPage> {
     final collection = FirebaseFirestore.instance
         .collection("users")
         .doc(userId)
-        .collection("utilities");
+        .collection("loginUtilities");
 
+    // Encrypt username and password before saving
     final data = {
+      'title': _titleController.text.trim().isEmpty ? "New Login Utility" : _titleController.text.trim(),
       'url': _urlController.text.trim(),
-      'usernameOrEmail': _usernameController.text.trim(),
-      'password': _passwordController.text.trim(),
+      'usernameOrEmail': EncryptionHelper.encrypt(_usernameController.text.trim()),
+      'password': EncryptionHelper.encrypt(_passwordController.text.trim()),
       'createdAt': FieldValue.serverTimestamp(),
     };
 
@@ -92,17 +99,24 @@ class _UtilityPageState extends State<UtilityPage> {
 
   Future<bool> _onWillPop() async {
     if (_isEdited) {
-      final shouldSave = await showDialog<bool>(
-        context: context,
-        builder: (_) => _buildStyledDialog(
-          title: "Save Changes?",
-          content: "You have unsaved changes. Would you like to save before exiting?",
-          positiveText: "Save",
-          negativeText: "Discard",
-        ),
-      );
+      // For NEW utilities: ask to save or discard
+      if (widget.utility == null) {
+        final shouldSave = await showDialog<bool>(
+          context: context,
+          builder: (_) => _buildStyledDialog(
+            title: "Save Changes?",
+            content: "You have unsaved changes. Would you like to save before exiting?",
+            positiveText: "Save",
+            negativeText: "Discard",
+          ),
+        );
 
-      if (shouldSave == true) {
+        if (shouldSave == true) {
+          await _saveUtility();
+          return false;
+        }
+      } else {
+        // For EXISTING utilities: auto-save without asking
         await _saveUtility();
         return false;
       }
@@ -119,38 +133,50 @@ class _UtilityPageState extends State<UtilityPage> {
   }) {
     return AlertDialog(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         title,
         style: GoogleFonts.poppins(
           fontWeight: FontWeight.w600,
+          fontSize: 18,
           color: Colors.black,
         ),
       ),
       content: Text(
         content,
         style: GoogleFonts.poppins(
-          color: Colors.black87,
           fontSize: 14,
+          color: Colors.black.withValues(alpha: 0.8),
         ),
       ),
-      actionsAlignment: MainAxisAlignment.end,
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.grey.shade300,
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           child: Text(
             negativeText,
-            style: GoogleFonts.poppins(color: Colors.grey[700]),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
+          style: TextButton.styleFrom(
+            backgroundColor: positiveColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           child: Text(
             positiveText,
-            style: GoogleFonts.poppins(
-              color: positiveColor,
-              fontWeight: FontWeight.w600,
-            ),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -360,11 +386,16 @@ class _UtilityPageState extends State<UtilityPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFF5C5C5C),
           elevation: 1,
+          iconTheme: const IconThemeData(color: Colors.white),
           title: Text(
-            isEditing ? "Edit Utility" : "New Utility",
-            style: GoogleFonts.poppins(color: Colors.black),
+            isEditing ? "Edit Login Utility" : "New Login Utility",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+            ),
           ),
           actions: [
             if (isEditing)
@@ -374,7 +405,7 @@ class _UtilityPageState extends State<UtilityPage> {
               ),
             IconButton(
               onPressed: _saveUtility,
-              icon: const Icon(Icons.save, color: Color(0xFF5C5C5C)),
+              icon: const Icon(Icons.save, color: Colors.white),
             ),
           ],
         ),
@@ -382,6 +413,16 @@ class _UtilityPageState extends State<UtilityPage> {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
+              TextField(
+                controller: _titleController,
+                style: GoogleFonts.poppins(color: Colors.black),
+                decoration: InputDecoration(
+                  labelText: "Title / Name",
+                  labelStyle: GoogleFonts.poppins(color: Color(0xFF5C5C5C)),
+                  border: InputBorder.none,
+                ),
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _urlController,
                 style: GoogleFonts.poppins(color: Colors.black),
@@ -416,6 +457,7 @@ class _UtilityPageState extends State<UtilityPage> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _urlController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();

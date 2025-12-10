@@ -67,6 +67,7 @@ lib/
 ```
 
 🚀 How to Run
+
 1️⃣ Clone the repo
 git clone https://github.com/your-username/notilo.git
 cd notilo

@@ -673,7 +673,7 @@ class _HomePageState extends State<HomePage> {
                   final title = note['title'];
                   // Decrypt description for preview (handle Rich Text)
                   final description = _getPreviewText(note['description']);
-                  final updatedAt = (note['updatedAt'] as Timestamp).toDate();
+                  final updatedAt = (note['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
                   final isSecured = note['secured'] ?? false;
 
                   return GestureDetector(

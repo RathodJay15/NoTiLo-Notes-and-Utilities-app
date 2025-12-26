@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'note_page_controller.dart';
+import 'collab_dialog.dart';
 
 class NotePage extends StatefulWidget {
   final DocumentSnapshot? note;
@@ -457,9 +458,12 @@ class _NotePageState extends State<NotePage> {
             ),
           ),
           actions: [
-            if (isEditing)
-              IconButton(
-                onPressed: () async {
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onSelected: (value) async {
+                if (value == 'save') {
+                  await _controller.saveNote(context);
+                } else if (value == 'lock') {
                   if (_controller.isSecured) {
                     final verified = await _verifyPassword();
                     if (!verified) return;
@@ -467,13 +471,76 @@ class _NotePageState extends State<NotePage> {
                   } else {
                     await _showPasswordOptionsDialog();
                   }
-                },
-                icon: Icon(_controller.isSecured ? Icons.lock : Icons.lock_open, color: _controller.isSecured ? Colors.amber : Colors.white),
-                tooltip: _controller.isSecured ? "Remove Password Protection" : "Add Password Protection",
-              ),
-            if (isEditing) IconButton(onPressed: _showShareMenu, icon: const Icon(Icons.share, color: Colors.white)),
-            if (isEditing) IconButton(onPressed: _deleteNote, icon: const Icon(Icons.delete, color: Colors.red)),
-            IconButton(onPressed: () => _controller.saveNote(context), icon: const Icon(Icons.save, color: Colors.white)),
+                } else if (value == 'share') {
+                  await _showShareMenu();
+                } else if (value == 'collab') {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const CollabDialog(),
+                  );
+                } else if (value == 'delete') {
+                  await _deleteNote();
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'save',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.save, color: Color(0xFF5C5C5C)),
+                      const SizedBox(width: 12),
+                      Text('Save', style: GoogleFonts.poppins()),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                if (isEditing)
+                  PopupMenuItem(
+                    value: 'lock',
+                    child: Row(
+                      children: [
+                        Icon(_controller.isSecured ? Icons.lock : Icons.lock_open, color: _controller.isSecured ? Colors.amber : const Color(0xFF5C5C5C)),
+                        const SizedBox(width: 12),
+                        Text(_controller.isSecured ? 'Unlock Note' : 'Lock Note', style: GoogleFonts.poppins()),
+                      ],
+                    ),
+                  ),
+                if (isEditing)
+                  PopupMenuItem(
+                    value: 'share',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.share, color: Color(0xFF5C5C5C)),
+                        const SizedBox(width: 12),
+                        Text('Share', style: GoogleFonts.poppins()),
+                      ],
+                    ),
+                  ),
+                if (isEditing)
+                  PopupMenuItem(
+                    value: 'collab',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.group, color: Color(0xFF5C5C5C)),
+                        const SizedBox(width: 12),
+                        Text('Collab Note', style: GoogleFonts.poppins()),
+                      ],
+                    ),
+                  ),
+                if (isEditing) const PopupMenuDivider(),
+                if (isEditing)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete, color: Colors.red),
+                        const SizedBox(width: 12),
+                        Text('Delete', style: GoogleFonts.poppins(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
         body: Stack(

@@ -45,20 +45,20 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      print('Login successful: ${userCred.user?.uid}');
-      
+      //print('Login successful: ${userCred.user?.uid}');
+
       // Ensure remember_me is written before any navigation
       await _authService.setRememberMe(_rememberMe);
-      print('Remember me preference saved');
-      
+      //print('Remember me preference saved');
+
       // authStateChanges() in main.dart will handle navigation automatically
     } on FirebaseAuthException catch (e) {
-      print('Login error: ${e.code} - ${e.message}');
+      //print('Login error: ${e.code} - ${e.message}');
       setState(() {
         _passwordError = e.message ?? "Login failed: ${e.code}";
       });
     } catch (e, st) {
-      print('Unexpected login error: $e\n$st');
+      //print('Unexpected login error: $e\n$st');
       setState(() {
         _passwordError = "Login failed: $e";
       });

@@ -11,11 +11,14 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      print('signIn success uid=${cred.user?.uid}');
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      //print('signIn success uid=${cred.user?.uid}');
       return cred;
     } catch (e, st) {
-      print('signIn error: $e\n$st');
+      //print('signIn error: $e\n$st');
       rethrow;
     }
   }
@@ -25,8 +28,11 @@ class AuthService {
   }
 
   Future<void> setRememberMe(bool value) async {
-    await _secureStorage.write(key: _rememberMeKey, value: value ? 'true' : 'false');
-    print('remember_me set to $value');
+    await _secureStorage.write(
+      key: _rememberMeKey,
+      value: value ? 'true' : 'false',
+    );
+    //print('remember_me set to $value');
   }
 
   Future<bool> getRememberMe() async {
@@ -46,14 +52,14 @@ class AuthService {
           final authTimeSeconds = int.tryParse(authTime.toString()) ?? 0;
           final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           if (nowSeconds - authTimeSeconds <= 3) {
-            print('User recently signed in, skipping auto sign-out');
+            //print('User recently signed in, skipping auto sign-out');
             return;
           }
         }
       } catch (e) {
-        print('Error checking auth time: $e');
+        //print('Error checking auth time: $e');
       }
-      print('Signing out user (remember_me is false)');
+      //print('Signing out user (remember_me is false)');
       await signOut();
     }
   }

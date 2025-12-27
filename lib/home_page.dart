@@ -363,7 +363,9 @@ class _HomePageState extends State<HomePage> {
     bool obscurePassword = true;
     final data = note.data() as Map<String, dynamic>?;
     final encryptedCustomPassword = data?['customPassword'];
-    final customPassword = encryptedCustomPassword != null ? EncryptionHelper.decrypt(encryptedCustomPassword) : null;
+    final customPassword = encryptedCustomPassword != null
+        ? EncryptionHelper.decrypt(encryptedCustomPassword)
+        : null;
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -386,103 +388,108 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    customPassword != null
-                        ? "Enter your custom password:"
-                        : "Enter your login password:",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.black.withValues(alpha: 0.8),
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      customPassword != null
+                          ? "Enter your custom password:"
+                          : "Enter your login password:",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.black.withValues(alpha: 0.8),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: obscurePassword,
-                    style: GoogleFonts.poppins(color: Colors.black),
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      labelStyle: GoogleFonts.poppins(
-                        color: const Color(0xFF5C5C5C),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      style: GoogleFonts.poppins(color: Colors.black),
+                      decoration: InputDecoration(
+                        labelText: "Password",
+                        labelStyle: GoogleFonts.poppins(
                           color: const Color(0xFF5C5C5C),
                         ),
-                        onPressed: () =>
-                            setState(() => obscurePassword = !obscurePassword),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: const Color(0xFF5C5C5C),
+                          ),
+                          onPressed: () => setState(
+                            () => obscurePassword = !obscurePassword,
+                          ),
+                        ),
                       ),
+                    ),
+                  ],
+                ),
+                actionsPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.grey.shade300,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Cancel",
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      if (customPassword != null) {
+                        if (passwordController.text.trim() == customPassword) {
+                          Navigator.pop(context, true);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Incorrect password!"),
+                            ),
+                          );
+                        }
+                      } else {
+                        try {
+                          final user = FirebaseAuth.instance.currentUser!;
+                          final cred = EmailAuthProvider.credential(
+                            email: user.email!,
+                            password: passwordController.text.trim(),
+                          );
+                          await user.reauthenticateWithCredential(cred);
+                          Navigator.pop(context, true);
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Incorrect password!"),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFF5C5C5C),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Verify",
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
-              ),
-              actionsPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.grey.shade300,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    "Cancel",
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    if (customPassword != null) {
-                      if (passwordController.text.trim() == customPassword) {
-                        Navigator.pop(context, true);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Incorrect password!")),
-                        );
-                      }
-                    } else {
-                      try {
-                        final user = FirebaseAuth.instance.currentUser!;
-                        final cred = EmailAuthProvider.credential(
-                          email: user.email!,
-                          password: passwordController.text.trim(),
-                        );
-                        await user.reauthenticateWithCredential(cred);
-                        Navigator.pop(context, true);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Incorrect password!")),
-                        );
-                      }
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFF5C5C5C),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    "Verify",
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
               ),
             );
           },
@@ -673,7 +680,9 @@ class _HomePageState extends State<HomePage> {
                   final title = note['title'];
                   // Decrypt description for preview (handle Rich Text)
                   final description = _getPreviewText(note['description']);
-                  final updatedAt = (note['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+                  final updatedAt =
+                      (note['updatedAt'] as Timestamp?)?.toDate() ??
+                      DateTime.now();
                   final isSecured = note['secured'] ?? false;
 
                   return GestureDetector(

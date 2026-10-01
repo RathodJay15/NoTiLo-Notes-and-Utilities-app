@@ -15,10 +15,23 @@ class AuthService {
         email: email,
         password: password,
       );
-      //print('signIn success uid=${cred.user?.uid}');
       return cred;
-    } catch (e, st) {
-      //print('signIn error: $e\n$st');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<UserCredential> registerWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return cred;
+    } catch (e) {
       rethrow;
     }
   }
@@ -32,7 +45,6 @@ class AuthService {
       key: _rememberMeKey,
       value: value ? 'true' : 'false',
     );
-    //print('remember_me set to $value');
   }
 
   Future<bool> getRememberMe() async {
@@ -45,21 +57,16 @@ class AuthService {
     final currentUser = _auth.currentUser;
     if (!remember && currentUser != null) {
       try {
-        // Check if user signed in recently (within 3 seconds) to avoid race condition
         final idTokenResult = await currentUser.getIdTokenResult(true);
         final authTime = idTokenResult.claims?['auth_time'];
         if (authTime != null) {
           final authTimeSeconds = int.tryParse(authTime.toString()) ?? 0;
           final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           if (nowSeconds - authTimeSeconds <= 3) {
-            //print('User recently signed in, skipping auto sign-out');
             return;
           }
         }
-      } catch (e) {
-        //print('Error checking auth time: $e');
-      }
-      //print('Signing out user (remember_me is false)');
+      } catch (_) {}
       await signOut();
     }
   }

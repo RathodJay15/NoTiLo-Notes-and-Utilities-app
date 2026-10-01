@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login_page.dart';
-import 'home_page.dart';
+import 'core/constants/app_colors.dart';
+import 'features/auth/screens/login_screen.dart';
+import 'features/auth/services/auth_service.dart';
+import 'features/home/screens/home_screen.dart';
 import 'firebase_options.dart';
-import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
   final authService = AuthService();
   await authService.enforceRememberMeOnStartup();
 
@@ -53,28 +54,26 @@ class MyApp extends StatelessWidget {
       title: 'Notilo',
       theme: ThemeData(
         fontFamily: 'Poppins',
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: AppColors.scaffoldBackground,
 
-        //  this block for consistent dark grey borders on TextFields
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF5C5C5C), width: 1.5),
+            borderSide: BorderSide(color: AppColors.border, width: 1.5),
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF5C5C5C), width: 1.0),
+            borderSide: BorderSide(color: AppColors.border, width: 1.0),
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF5C5C5C)),
+            borderSide: BorderSide(color: AppColors.border),
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
         ),
 
-        //  Ensures focus color (cursor, highlight) also uses grey instead of blue
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF5C5C5C),
-          primary: Color(0xFF5C5C5C),
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
         ),
       ),
       home: const AuthWrapper(),
@@ -106,19 +105,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
       _isLoading = false;
     });
 
-    // Listen to auth state changes and log them
     FirebaseAuth.instance.authStateChanges().listen((user) {
-      print('authStateChanges: ${user?.uid ?? "null (signed out)"}');
       if (mounted) {
         setState(() {
           _isLoggedIn = user != null;
         });
       }
-    });
-    
-    // Also listen to token changes for debugging
-    FirebaseAuth.instance.idTokenChanges().listen((user) {
-      print('idTokenChanges: ${user?.uid ?? "null"}');
     });
   }
 
@@ -127,11 +119,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
     if (_isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF5C5C5C)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
 
-    return _isLoggedIn ? const HomePage() : const LoginPage();
+    return _isLoggedIn ? const HomeScreen() : const LoginScreen();
   }
 }

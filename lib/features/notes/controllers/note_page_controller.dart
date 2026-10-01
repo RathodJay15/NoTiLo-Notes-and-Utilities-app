@@ -13,7 +13,7 @@ import 'package:universal_html/html.dart' as html;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:share_plus/share_plus.dart';
-import 'encryption_helper.dart';
+import '../../../core/utils/encryption_helper.dart';
 
 class NotePageController {
   final DocumentSnapshot? note;
@@ -129,7 +129,10 @@ class NotePageController {
     if (context.mounted) Navigator.pop(context);
   }
 
-  Future<void> deleteNote(BuildContext context, Future<bool> Function() verifyPassword) async {
+  Future<void> deleteNote(
+    BuildContext context,
+    Future<bool> Function() verifyPassword,
+  ) async {
     if (note != null) {
       if (isSecured) {
         final verified = await verifyPassword();
@@ -141,7 +144,10 @@ class NotePageController {
     }
   }
 
-  Future<bool> verifyPassword(BuildContext context, String enteredPassword) async {
+  Future<bool> verifyPassword(
+    BuildContext context,
+    String enteredPassword,
+  ) async {
     if (customPassword != null) {
       return enteredPassword.trim() == customPassword;
     } else {
@@ -189,11 +195,14 @@ class NotePageController {
       await requestStoragePermission();
 
       final pdfDoc = pw.Document();
-      final title = titleController.text.isEmpty ? 'Note' : titleController.text;
+      final title =
+          titleController.text.isEmpty ? 'Note' : titleController.text;
       final delta = quillController.document.toDelta();
 
-      final devanagariData = await rootBundle.load('assets/fonts/NotoSansDevanagari.ttf');
-      final gujaratiData = await rootBundle.load('assets/fonts/NotoSansGujarati.ttf');
+      final devanagariData =
+          await rootBundle.load('assets/fonts/NotoSansDevanagari.ttf');
+      final gujaratiData =
+          await rootBundle.load('assets/fonts/NotoSansGujarati.ttf');
       final devanagariFont = pw.Font.ttf(devanagariData);
       final gujaratiFont = pw.Font.ttf(gujaratiData);
 
@@ -206,11 +215,21 @@ class NotePageController {
           final style = pw.TextStyle(
             font: devanagariFont,
             fontFallback: [gujaratiFont],
-            fontWeight: attrs['bold'] == true ? pw.FontWeight.bold : pw.FontWeight.normal,
-            fontStyle: attrs['italic'] == true ? pw.FontStyle.italic : pw.FontStyle.normal,
-            decoration: attrs['underline'] == true ? pw.TextDecoration.underline : null,
-            color: attrs['color'] != null ? parsePdfColor(attrs['color']) : pdf.PdfColors.black,
-            background: attrs['background'] != null ? pw.BoxDecoration(color: parsePdfColor(attrs['background'])) : null,
+            fontWeight: attrs['bold'] == true
+                ? pw.FontWeight.bold
+                : pw.FontWeight.normal,
+            fontStyle: attrs['italic'] == true
+                ? pw.FontStyle.italic
+                : pw.FontStyle.normal,
+            decoration: attrs['underline'] == true
+                ? pw.TextDecoration.underline
+                : null,
+            color: attrs['color'] != null
+                ? parsePdfColor(attrs['color'])
+                : pdf.PdfColors.black,
+            background: attrs['background'] != null
+                ? pw.BoxDecoration(color: parsePdfColor(attrs['background']))
+                : null,
           );
           spans.add(pw.TextSpan(text: insert, style: style));
         }
@@ -266,7 +285,8 @@ class NotePageController {
   Future<void> exportAsTXT(Function(String) showSnackBar) async {
     await requestStoragePermission();
 
-    final fileName = "${titleController.text.isEmpty ? 'note' : titleController.text}.txt";
+    final fileName =
+        "${titleController.text.isEmpty ? 'note' : titleController.text}.txt";
     final plainText = quillController.document.toPlainText();
     final content = "Title: ${titleController.text}\n\n$plainText";
 
@@ -301,11 +321,14 @@ class NotePageController {
       await requestStoragePermission();
 
       final pdfDoc = pw.Document();
-      final title = titleController.text.isEmpty ? 'Note' : titleController.text;
+      final title =
+          titleController.text.isEmpty ? 'Note' : titleController.text;
       final delta = quillController.document.toDelta();
 
-      final devanagariData = await rootBundle.load('assets/fonts/NotoSansDevanagari.ttf');
-      final gujaratiData = await rootBundle.load('assets/fonts/NotoSansGujarati.ttf');
+      final devanagariData =
+          await rootBundle.load('assets/fonts/NotoSansDevanagari.ttf');
+      final gujaratiData =
+          await rootBundle.load('assets/fonts/NotoSansGujarati.ttf');
       final devanagariFont = pw.Font.ttf(devanagariData);
       final gujaratiFont = pw.Font.ttf(gujaratiData);
 
@@ -318,11 +341,21 @@ class NotePageController {
           final style = pw.TextStyle(
             font: devanagariFont,
             fontFallback: [gujaratiFont],
-            fontWeight: attrs['bold'] == true ? pw.FontWeight.bold : pw.FontWeight.normal,
-            fontStyle: attrs['italic'] == true ? pw.FontStyle.italic : pw.FontStyle.normal,
-            decoration: attrs['underline'] == true ? pw.TextDecoration.underline : null,
-            color: attrs['color'] != null ? parsePdfColor(attrs['color']) : pdf.PdfColors.black,
-            background: attrs['background'] != null ? pw.BoxDecoration(color: parsePdfColor(attrs['background'])) : null,
+            fontWeight: attrs['bold'] == true
+                ? pw.FontWeight.bold
+                : pw.FontWeight.normal,
+            fontStyle: attrs['italic'] == true
+                ? pw.FontStyle.italic
+                : pw.FontStyle.normal,
+            decoration: attrs['underline'] == true
+                ? pw.TextDecoration.underline
+                : null,
+            color: attrs['color'] != null
+                ? parsePdfColor(attrs['color'])
+                : pdf.PdfColors.black,
+            background: attrs['background'] != null
+                ? pw.BoxDecoration(color: parsePdfColor(attrs['background']))
+                : null,
           );
           spans.add(pw.TextSpan(text: insert, style: style));
         }
@@ -378,7 +411,8 @@ class NotePageController {
       if (kIsWeb) {
         await Share.share(content, subject: titleController.text);
       } else {
-        final fileName = "${titleController.text.isEmpty ? 'note' : titleController.text}.txt";
+        final fileName =
+            "${titleController.text.isEmpty ? 'note' : titleController.text}.txt";
         final tempDir = await getTemporaryDirectory();
         final file = File("${tempDir.path}/$fileName");
         await file.writeAsString(content);
@@ -391,7 +425,8 @@ class NotePageController {
   }
 
   void toggleAttribute(quill.Attribute attribute) {
-    final isToggled = quillController.getSelectionStyle().containsKey(attribute.key);
+    final isToggled =
+        quillController.getSelectionStyle().containsKey(attribute.key);
     if (isToggled) {
       quillController.formatSelection(quill.Attribute.clone(attribute, null));
     } else {
@@ -401,7 +436,7 @@ class NotePageController {
   }
 
   void applyColor(Color color, bool isBackground) {
-    final hexString = color.value.toRadixString(16).padLeft(8, '0');
+    final hexString = color.toARGB32().toRadixString(16).padLeft(8, '0');
     final hex = '#${hexString.substring(2)}';
     if (isBackground) {
       selectedBgColor = color;
@@ -430,7 +465,10 @@ class NotePageController {
     onStateChanged?.call(() {});
   }
 
-  Future<bool> onWillPop(BuildContext context, Future<void> Function() saveNote) async {
+  Future<bool> onWillPop(
+    BuildContext context,
+    Future<void> Function() saveNote,
+  ) async {
     if (isEdited) {
       if (note == null) {
         return false;

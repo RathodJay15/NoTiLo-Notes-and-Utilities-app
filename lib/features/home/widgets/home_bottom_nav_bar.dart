@@ -30,46 +30,34 @@ class HomeBottomNavBar extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: SizedBox(
-            height: 40,
-            child: BottomNavigationBar(
-              currentIndex: currentIndex,
-              onTap: onTap,
-              backgroundColor: AppColors.primary,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.grey,
-              selectedLabelStyle: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-              unselectedLabelStyle: GoogleFonts.poppins(fontSize: 9),
-              type: BottomNavigationBarType.fixed,
-              elevation: 0,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2),
-                    child: Icon(Icons.note, size: 20),
-                  ),
-                  label: 'Notes',
-                ),
-                BottomNavigationBarItem(
-                  icon: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2),
-                    child: Icon(Icons.link, size: 20),
-                  ),
-                  label: 'Simple Utility',
-                ),
-                BottomNavigationBarItem(
-                  icon: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2),
-                    child: Icon(Icons.login, size: 20),
-                  ),
-                  label: 'Login Utility',
-                ),
-              ],
+          borderRadius: BorderRadius.circular(15),
+          child: BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: onTap,
+            backgroundColor: AppColors.primary,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.grey,
+            selectedLabelStyle: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
+            unselectedLabelStyle: GoogleFonts.poppins(fontSize: 10),
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.note, size: 22),
+                label: 'Notes',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.link, size: 22),
+                label: 'Simple Utility',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.login, size: 22),
+                label: 'Login Utility',
+              ),
+            ],
           ),
         ),
       ),
